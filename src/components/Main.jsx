@@ -1,26 +1,47 @@
 import { useState } from "react";
 import React from 'react';
+import axios from 'axios';
+import WeatherCard from "./WeatherCard";
 
 const Main = () => {
-    const [searchText, setsearchText] = useState('');
-    const handleChange = (e)=> {
-        setsearchText(e.target.value);
+    const [searchText, setSearchText] = useState("");
+    const [data, setData] = useState('');
+    // const [error, setError] = useState("");
+    const handleChange = (e) => {
+      setSearchText(e.target.value);
     };
+    const handleSubmit = (e) => {
+      e.preventDefault();
+      getWeatherDataFromApi();
+      setSearchText("");
+    };
+    const getWeatherDataFromApi = async () => {
+      let apiKey = process.env.REACT_APP_API_KEY;
+      let units = "metric";
+      let lang = "tr";
+      let url = `https://api.openweathermap.org/data/2.5/weather?lat=44.34&lon=10.99&appid=${apiKey}&units=${units}&lang=${lang}`;
+      try {
+        const response = await axios.get(url);
+        //   console.log(response);
+            const { main, name, sys, weather, id } = response.data;
+            const iconUrl = `https://openweathermap.org/img/wn/${weather[0].icon}@2x.png`;
+            setData([...data,{main, name, sys, weather, iconUrl, id}]);
 
-    const getWeatherDatafromApi = async()=> {
-        
-    }
-
+        }catch(err){
+            console.log(err);
+        };
+    };
+    // console.log(data);
   return (
     <section className='main'>
-        <form>
-            <input onChange={handleChange} type="text" placeholder='Search for a city' autoFocus />
+        <form onSubmit={handleSubmit}>
+            <input onChange={handleChange} type="text" placeholder='Search for a city' value={searchText} autoFocus />
             <button type='submit'>SUBMIT</button>
             <span className='msg'></span>
         </form>
         <div className="container">
             <ul className="cities">
-
+               {data && <WeatherCard data={data}/>} 
             </ul>
         </div>
     </section>
